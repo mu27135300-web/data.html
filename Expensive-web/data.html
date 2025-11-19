@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Expensive Data Mobile App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-purple-700 text-white p-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="24" rx="6" fill="white" opacity="0.06"/>
+        <path d="M6 12h12" stroke="white" stroke-width="1.25" stroke-linecap="round"/>
+        <path d="M12 6v12" stroke="white" stroke-width="1.25" stroke-linecap="round"/>
+      </svg>
+      <h1 class="text-xl font-bold">Expensive Data Mobile App</h1>
+    </div>
+
+    <div id="authArea" class="flex items-center gap-3">
+      <!-- Auth buttons rendered by JS -->
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="p-5 max-w-2xl mx-auto">
+
+    <!-- Welcome / User info -->
+    <div id="welcome" class="mb-4">
+      <p class="text-sm text-gray-700">Buy airtime/data across all Nigerian networks quickly.</p>
+    </div>
+
+    <!-- NETWORKS -->
+    <section class="mb-6">
+      <h2 class="text-lg font-semibold mb-3">Select Network</h2>
+      <div class="grid grid-cols-4 gap-3">
+        <button onclick="loadNetwork('mtn')"      class="networkBtn bg-yellow-500 text-white py-2 rounded">MTN</button>
+        <button onclick="loadNetwork('airtel')"   class="networkBtn bg-red-600 text-white py-2 rounded">Airtel</button>
+        <button onclick="loadNetwork('glo')"      class="networkBtn bg-green-600 text-white py-2 rounded">Glo</button>
+        <button onclick="loadNetwork('etisalat')" class="networkBtn bg-gray-800 text-white py-2 rounded">9mobile</button>
+      </div>
+    </section>
+
+    <!-- MTN Category tabs (shown only for MTN) -->
+    <div id="mtnCategoryWrap" class="mb-4 hidden">
+      <label class="text-sm text-gray-700">MTN Category</label>
+      <div class="flex gap-2 mt-2">
+        <button id="mtnCatPersonal" class="px-3 py-1 rounded bg-indigo-600 text-white" onclick="setMtnCategory('personal')">Personal</button>
+        <button id="mtnCatSme" class="px-3 py-1 rounded bg-gray-200 text-gray-800" onclick="setMtnCategory('sme')">SME</button>
+        <button id="mtnCatCorp" class="px-3 py-1 rounded bg-gray-200 text-gray-800" onclick="setMtnCategory('corporate')">Corporate</button>
+      </div>
+    </div>
+
+    <!-- Plan list -->
+    <section id="plansSection">
+      <div id="plans" class="space-y-4"></div>
+    </section>
+
+  </main>
+
+  <!-- BUY MODAL -->
+  <div id="buyModal" class="hidden fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+      <h3 class="text-lg font-bold mb-3">Confirm Purchase</h3>
+
+      <label class="block text-sm mb-1">Beneficiary Phone</label>
+      <input id="phone" class="w-full p-2 mb-3 border rounded" placeholder="e.g. 0803xxxxxxx">
+
+      <label class="block text-sm mb-1">Network</label>
+      <input id="planNetwork" disabled class="w-full p-2 mb-3 border rounded bg-gray-100"/>
+
+      <label class="block text-sm mb-1">Plan</label>
+      <input id="planTitle" disabled class="w-full p-2 mb-3 border rounded bg-gray-100"/>
+
+      <label class="block text-sm mb-1">Amount</label>
+      <input id="planPrice" disabled class="w-full p-2 mb-4 border rounded bg-gray-100"/>
+
+      <div class="flex gap-2">
+        <button id="confirmBtn" class="flex-1 bg-purple-700 text-white py-2 rounded">Confirm & Checkout</button>
+        <button onclick="closeModal()" class="flex-1 bg-gray-200 py-2 rounded">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN / SIGNUP MODAL -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+      <div class="flex justify-between items-center mb-3">
+        <h3 id="authTitle" class="text-lg font-bold">Login</h3>
+        <button onclick="closeAuthModal()" class="text-gray-500">✕</button>
+      </div>
+
+      <div id="authForm">
+        <!-- login form -->
+        <div id="loginForm">
+          <label class="block text-sm mb-1">Email</label>
+          <input id="loginEmail" class="w-full p-2 mb-2 border rounded" placeholder="you@example.com"/>
+          <label class="block text-sm mb-1">Password</label>
+          <input id="loginPassword" type="password" class="w-full p-2 mb-4 border rounded" placeholder="password"/>
+          <button onclick="doLogin()" class="w-full bg-purple-700 text-white py-2 rounded mb-2">Login</button>
+          <p class="text-sm text-center">Don't have an account? <button class="text-indigo-600" onclick="showSignup()">Create one</button></p>
+        </div>
+
+        <!-- signup form -->
+        <div id="signupForm" class="hidden">
+          <label class="block text-sm mb-1">Full name</label>
+          <input id="signupName" class="w-full p-2 mb-2 border rounded" placeholder="Your name"/>
+          <label class="block text-sm mb-1">Email</label>
+          <input id="signupEmail" class="w-full p-2 mb-2 border rounded" placeholder="you@example.com"/>
+          <label class="block text-sm mb-1">Password</label>
+          <input id="signupPassword" type="password" class="w-full p-2 mb-2 border rounded" placeholder="create a password"/>
+          <label class="block text-sm mb-1">Confirm Password</label>
+          <input id="signupPassword2" type="password" class="w-full p-2 mb-4 border rounded" placeholder="repeat password"/>
+          <button onclick="doSignup()" class="w-full bg-purple-700 text-white py-2 rounded mb-2">Sign up</button>
+          <p class="text-sm text-center">Already have an account? <button class="text-indigo-600" onclick="showLogin()">Login</button></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- App Data ---------- */
+
+const whatsappNumber = "09072772744"; // PUT YOUR WHATSAPP BUSINESS NUMBER (in international format without +)
+
+const database = {
+  mtn: {
+    personal: [
+      { title: "500MB - Daily", price: "₦150" },
+      { title: "1GB - Daily", price: "₦300" },
+      { title: "1.5GB - Monthly", price: "₦1000" },
+      { title: "3GB - Monthly", price: "₦1500" },
+      { title: "6GB - Monthly", price: "₦2500" }
+    ],
+    sme: [
+      { title: "10GB SME (30d)", price: "₦8,000" },
+      { title: "20GB SME (30d)", price: "₦14,000" },
+      { title: "50GB SME (30d)", price: "₦32,000" }
+    ],
+    corporate: [
+      { title: "100GB Corporate (30d)", price: "₦60,000" },
+      { title: "250GB Corporate (30d)", price: "₦140,000" },
+      { title: "500GB Corporate (30d)", price: "₦260,000" }
+    ]
+  },
+  airtel: [
+    { title: "500MB - Daily", price: "₦100" },
+    { title: "1.5GB - Monthly", price: "₦1000" },
+    { title: "3GB - Monthly", price: "₦1500" },
+    { title: "6GB - Monthly", price: "₦2500" },
+    { title: "10GB - Monthly", price: "₦3500" }
+  ],
+  glo: [
+    { title: "1.35GB - Small Plan", price: "₦1000" },
+    { title: "2.9GB - Monthly", price: "₦1500" },
+    { title: "4.1GB - Monthly", price: "₦2000" },
+    { title: "7.75GB - Monthly", price: "₦2500" },
+    { title: "10GB - Monthly", price: "₦3500" }
+  ],
+  etisalat: [
+    { title: "500MB - Daily", price: "₦200" },
+    { title: "1.5GB - Monthly", price: "₦1200" },
+    { title: "2.5GB - Monthly", price: "₦2000" },
+    { title: "4GB - Monthly", price: "₦3000" },
+    { title: "11GB - Monthly", price: "₦5000" }
+  ]
+};
+
+/* ---------- State ---------- */
+
+let currentNetwork = "mtn";
+let currentMtnCategory = "personal";
+
+/* ---------- Auth: simple client-side using localStorage ---------- */
+
+function usersKey(){ return "expensive_data_users"; }
+function sessionKey(){ return "expensive_data_session"; }
+
+function readUsers(){
+  const raw = localStorage.getItem(usersKey());
+  return raw ? JSON.parse(raw) : [];
+}
+function writeUsers(u){ localStorage.setItem(usersKey(), JSON.stringify(u)); }
+
+function setSession(user){
+  localStorage.setItem(sessionKey(), JSON.stringify(user));
+  renderAuthArea();
+}
+function clearSession(){
+  localStorage.removeItem(sessionKey());
+  renderAuthArea();
+}
+function getSession(){ 
+  const raw = localStorage.getItem(sessionKey());
+  return raw ? JSON.parse(raw) : null;
+}
+
+/* Signup & Login handlers */
+
+function showLogin(){
+  document.getElementById("authTitle").textContent = "Login";
+  document.getElementById("loginForm").classList.remove("hidden");
+  document.getElementById("signupForm").classList.add("hidden");
+}
+
+function showSignup(){
+  document.getElementById("authTitle").textContent = "Create account";
+  document.getElementById("loginForm").classList.add("hidden");
+  document.getElementById("signupForm").classList.remove("hidden");
+}
+
+function openAuthModal(){
+  document.getElementById("authModal").classList.remove("hidden");
+  showLogin();
+}
+function closeAuthModal(){
+  document.getElementById("authModal").classList.add("hidden");
+}
+
+function doSignup(){
+  const name = document.getElementById("signupName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+  const pw = document.getElementById("signupPassword").value;
+  const pw2 = document.getElementById("signupPassword2").value;
+
+  if(!name || !email || !pw){ alert("Please fill name, email and password."); return; }
+  if(pw !== pw2){ alert("Passwords do not match."); return; }
+  // naive email check
+  if(!email.includes("@")){ alert("Enter a valid email."); return; }
+
+  const users = readUsers();
+  if(users.find(u => u.email === email)){ alert("An account with that email exists. Login instead."); showLogin(); return; }
+
+  const user = { id: Date.now(), name, email, password: pw };
+  users.push(user);
+  writeUsers(users);
+  setSession({ id: user.id, name: user.name, email: user.email });
+  closeAuthModal();
+  alert("Account created and logged in!");
+}
+
+function doLogin(){
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const pw = document.getElementById("loginPassword").value;
+  if(!email || !pw){ alert("Enter email and password."); return; }
+
+  const users = readUsers();
+  const user = users.find(u => u.email === email && u.password === pw);
+  if(!user){ alert("Invalid email or password."); return; }
+  setSession({ id: user.id, name: user.name, email: user.email });
+  closeAuthModal();
+  alert("Welcome back, " + user.name + "!");
+}
+
+function doLogout(){
+  if(confirm("Logout?")) clearSession();
+}
+
+/* Render auth area */
+function renderAuthArea(){
+  const authArea = document.getElementById("authArea");
+  authArea.innerHTML = "";
+  const session = getSession();
+  if(session){
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "text-sm text-white";
+    nameSpan.textContent = session.name;
+    const logoutBtn = document.createElement("button");
+    logoutBtn.className = "text-sm bg-white text-purple-700 px-3 py-1 rounded";
+    logoutBtn.textContent = "Logout";
+    logoutBtn.onclick = doLogout;
+    authArea.appendChild(nameSpan);
+    authArea.appendChild(logoutBtn);
+  } else {
+    const loginBtn = document.createElement("button");
+    loginBtn.className = "text-sm bg-white text-purple-700 px-3 py-1 rounded";
+    loginBtn.textContent = "Login / Signup";
+    loginBtn.onclick = openAuthModal;
+    authArea.appendChild(loginBtn);
+  }
+
+  // Update welcome
+  const welcome = document.getElementById("welcome");
+  if(session){
+    welcome.innerHTML = `<p class="text-sm text-gray-700">Signed in as <strong>${session.name}</strong> (${session.email}).</p>`;
+  } else {
+    welcome.innerHTML = `<p class="text-sm text-gray-700">You are not signed in. Sign up to save orders and get quicker checkout.</p>`;
+  }
+}
+
+/* ---------- Network & plans rendering ---------- */
+
+function setMtnCategory(cat){
+  currentMtnCategory = cat;
+  document.getElementById("mtnCatPersonal").classList.toggle("bg-indigo-600", cat==='personal');
+  document.getElementById("mtnCatPersonal").classList.toggle("bg-gray-200", cat!=='personal');
+  document.getElementById("mtnCatSme").classList.toggle("bg-indigo-600", cat==='sme');
+  document.getElementById("mtnCatSme").classList.toggle("bg-gray-200", cat!=='sme');
+  document.getElementById("mtnCatCorp").classList.toggle("bg-indigo-600", cat==='corporate');
+  document.getElementById("mtnCatCorp").classList.toggle("bg-gray-200", cat!=='corporate');
+  renderPlans();
+}
+
+function loadNetwork(net){
+  currentNetwork = net;
+  // show MTN categories only for MTN
+  if(net === 'mtn'){
+    document.getElementById("mtnCategoryWrap").classList.remove("hidden");
+  } else {
+    document.getElementById("mtnCategoryWrap").classList.add("hidden");
+  }
+  renderPlans();
+}
+
+function renderPlans(){
+  const plansContainer = document.getElementById("plans");
+  plansContainer.innerHTML = "";
+
+  if(currentNetwork === 'mtn'){
+    const plans = database.mtn[currentMtnCategory] || [];
+    if(currentMtnCategory === 'personal'){
+      const hint = document.createElement('p'); hint.className='text-sm text-gray-600 mb-2'; hint.textContent='Showing MTN Personal bundles.';
+      plansContainer.appendChild(hint);
+    } else if(currentMtnCategory === 'sme'){
+      const hint = document.createElement('p'); hint.className='text-sm text-gray-600 mb-2'; hint.textContent='MTN SME bundles (for small businesses).';
+      plansContainer.appendChild(hint);
+    } else {
+      const hint = document.createElement('p'); hint.className='text-sm text-gray-600 mb-2'; hint.textContent='MTN Corporate bundles (bulk).';
+      plansContainer.appendChild(hint);
+    }
+    plans.forEach(plan => appendPlanCard(plansContainer, 'MTN', plan));
+  } else {
+    const plans = database[currentNetwork] || [];
+    plans.forEach(plan => appendPlanCard(plansContainer, currentNetwork.toUpperCase(), plan));
+  }
+}
+
+function appendPlanCard(container, networkLabel, plan){
+  const div = document.createElement("div");
+  div.className = "bg-white p-4 rounded-lg shadow flex items-center justify-between";
+  div.innerHTML = `
+    <div>
+      <p class="font-bold text-lg">${plan.title}</p>
+      <p class="text-gray-700">${plan.price}</p>
+      <p class="text-xs text-gray-400 mt-1">${networkLabel}</p>
+    </div>
+    <button class="bg-purple-700 text-white px-4 py-2 rounded-lg">Buy</button>
+  `;
+  const btn = div.querySelector("button");
+  btn.onclick = () => {
+    // require login
+    const session = getSession();
+    if(!session){
+      alert("Please log in or sign up before buying.");
+      openAuthModal();
+      return;
+    }
+    openModal(networkLabel, plan.title, plan.price);
+  };
+  container.appendChild(div);
+}
+
+/* ---------- Modal actions ---------- */
+
+function openModal(network, title, price){
+  document.getElementById("planNetwork").value = network;
+  document.getElementById("planTitle").value = title;
+  document.getElementById("planPrice").value = price;
+  document.getElementById("phone").value = ""; // reset
+  document.getElementById("buyModal").classList.remove("hidden");
+}
+
+function closeModal(){
+  document.getElementById("buyModal").classList.add("hidden");
+}
+
+document.getElementById("confirmBtn").onclick = function(){
+  const phone = document.getElementById("phone").value.trim();
+  const network = document.getElementById("planNetwork").value;
+  const plan = document.getElementById("planTitle").value;
+  const price = document.getElementById("planPrice").value;
+  const session = getSession();
+
+  if(!session){
+    alert("Please login to proceed.");
+    openAuthModal();
+    return;
+  }
+
+  if(!phone || phone.replace(/\D/g,'').length < 10){
+    alert("Enter a valid phone number.");
+    return;
+  }
+
+  const message = `Hello ${session.name},\nI want to buy data from Expensive Data Mobile App.\n\nCustomer: ${session.name} (${session.email})\nNetwork: ${network}\nPlan: ${plan}\nPrice: ${price}\nPhone: ${phone}`;
+
+  window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`);
+  closeModal();
+};
+
+/* ---------- Init ---------- */
+
+renderAuthArea();
+loadNetwork("mtn");
+setMtnCategory("personal");
+
+/* Helpful: create a demo user if none exist (comment out if not wanted) */
+(function ensureDemoUser(){
+  const users = readUsers();
+  if(users.length === 0){
+    users.push({ id: Date.now(), name: "Demo User", email: "demo@expensive.app", password: "demo123" });
+    writeUsers(users);
+  }
+})();
+</script>
+
+</body>
+</html>
